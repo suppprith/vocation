@@ -142,3 +142,49 @@ export const COMPANY_SIZES = [
   { value: "large" as const, label: "Large (1001-5000)" },
   { value: "enterprise" as const, label: "Enterprise (5000+)" },
 ];
+
+// ── Employer / Company types ────────────────────────────────────────
+
+export interface CompanyProfile {
+  name: string;
+  website?: string;
+  industry: string;
+  size: "startup" | "small" | "medium" | "large" | "enterprise";
+  location: string;
+  description: string;
+  culture?: string;
+  benefits?: string[];
+  techStack?: string[];
+  foundedYear?: string;
+  linkedinUrl?: string;
+}
+
+export type JobPostingStatus = "draft" | "active" | "paused" | "closed";
+
+export interface JobPosting {
+  id: string;
+  // Basics
+  title: string;
+  department?: string;
+  location: string;
+  workArrangement: "remote" | "hybrid" | "onsite";
+  employmentType: "full-time" | "contract" | "internship" | "part-time";
+  // Compensation
+  salaryMin?: string;
+  salaryMax?: string;
+  currency: string;
+  // Description
+  summary: string;
+  responsibilities: string[];
+  requirements: string[];
+  niceToHave: string[];
+  // Skills & tags
+  skills: string[];
+  experienceLevel: "entry" | "mid" | "senior" | "lead" | "executive";
+  // Meta
+  applicationUrl?: string;
+  applicationEmail?: string;
+  status: JobPostingStatus;
+  createdDate: string;
+  updatedDate: string;
+}

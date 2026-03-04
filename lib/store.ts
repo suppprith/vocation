@@ -9,6 +9,9 @@ import {
   Application,
   ApplicationStatus,
   Job,
+  CompanyProfile,
+  JobPosting,
+  JobPostingStatus,
 } from "./types";
 import { v4 as uuidv4 } from "uuid";
 
@@ -49,6 +52,17 @@ interface AppState {
 
   // Onboarding Complete
   completeOnboarding: () => void;
+
+  // Employer
+  companyProfile: CompanyProfile | null;
+  setCompanyProfile: (profile: CompanyProfile) => void;
+  jobPostings: JobPosting[];
+  addJobPosting: (
+    posting: Omit<JobPosting, "id" | "createdDate" | "updatedDate">,
+  ) => void;
+  updateJobPosting: (id: string, updates: Partial<JobPosting>) => void;
+  updateJobPostingStatus: (id: string, status: JobPostingStatus) => void;
+  removeJobPosting: (id: string) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -89,6 +103,8 @@ export const useAppStore = create<AppState>()(
           careerPreferences: null,
           portfolioLinks: null,
           applications: [],
+          companyProfile: null,
+          jobPostings: [],
         });
       },
 
@@ -155,6 +171,44 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           user: state.user ? { ...state.user, onboardingComplete: true } : null,
           onboardingStep: 5,
+        })),
+
+      // Employer
+      companyProfile: null,
+      setCompanyProfile: (profile) => set({ companyProfile: profile }),
+
+      jobPostings: [],
+      addJobPosting: (posting) =>
+        set((state) => ({
+          jobPostings: [
+            ...state.jobPostings,
+            {
+              ...posting,
+              id: uuidv4(),
+              createdDate: new Date().toISOString(),
+              updatedDate: new Date().toISOString(),
+            },
+          ],
+        })),
+      updateJobPosting: (id, updates) =>
+        set((state) => ({
+          jobPostings: state.jobPostings.map((p) =>
+            p.id === id
+              ? { ...p, ...updates, updatedDate: new Date().toISOString() }
+              : p,
+          ),
+        })),
+      updateJobPostingStatus: (id, status) =>
+        set((state) => ({
+          jobPostings: state.jobPostings.map((p) =>
+            p.id === id
+              ? { ...p, status, updatedDate: new Date().toISOString() }
+              : p,
+          ),
+        })),
+      removeJobPosting: (id) =>
+        set((state) => ({
+          jobPostings: state.jobPostings.filter((p) => p.id !== id),
         })),
     }),
     {

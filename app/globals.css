@@ -119,6 +119,39 @@ select {
   animation: scaleIn 0.2s ease-out forwards;
 }
 
+/* Shared input / select / textarea style */
+.input-field {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-input);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-foreground);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.input-field::placeholder {
+  color: var(--color-muted-foreground);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-muted);
+}
+
+select.input-field {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239494a0' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  padding-right: 2rem;
+}
+
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
