@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { MOCK_JOBS } from "@/lib/mock-data";
 import Link from "next/link";
@@ -13,9 +14,11 @@ import {
   MapPinIcon,
 } from "@heroicons/react/24/outline";
 import type { Job } from "@/lib/types";
+import JobDetailModal from "@/components/job-detail-modal";
 
 export default function DashboardPage() {
   const { user, applications, resumeData, addApplication } = useAppStore();
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const topMatches = MOCK_JOBS.slice(0, 4);
 
   const appliedCount = applications.filter(
@@ -72,6 +75,7 @@ export default function DashboardPage() {
               key={job.id}
               job={job}
               onSave={handleSave}
+              onSelect={() => setSelectedJob(job)}
               isSaved={applications.some((a) => a.job.id === job.id)}
             />
           ))}
@@ -114,6 +118,8 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      <JobDetailModal job={selectedJob} onClose={() => setSelectedJob(null)} />
     </div>
   );
 }
@@ -132,14 +138,19 @@ function StatCard({ label, value }: { label: string; value: number }) {
 function JobCard({
   job,
   onSave,
+  onSelect,
   isSaved,
 }: {
   job: Job;
   onSave: (job: Job) => void;
+  onSelect: () => void;
   isSaved: boolean;
 }) {
   return (
-    <div className="p-4 rounded-xl border border-border bg-card hover:bg-card-hover hover:border-border-light transition-all">
+    <div
+      onClick={onSelect}
+      className="p-4 rounded-xl border border-border bg-card hover:bg-card-hover hover:border-border-light transition-all cursor-pointer"
+    >
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-[13px] truncate">{job.title}</h3>
@@ -148,7 +159,10 @@ function JobCard({
           </p>
         </div>
         <button
-          onClick={() => onSave(job)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSave(job);
+          }}
           disabled={isSaved}
           className={`p-1.5 rounded-lg transition-all cursor-pointer ml-2 ${
             isSaved

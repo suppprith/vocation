@@ -66,6 +66,7 @@ export interface Job {
   companyLogo?: string;
   description: string;
   location: string;
+  coordinates?: { lat: number; lng: number };
   workArrangement: "remote" | "hybrid" | "onsite";
   employmentType: "full-time" | "contract" | "internship" | "part-time";
   companySize: "startup" | "small" | "medium" | "large" | "enterprise";

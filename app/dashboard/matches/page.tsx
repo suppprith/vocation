@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { MOCK_JOBS } from "@/lib/mock-data";
 import {
@@ -8,9 +9,11 @@ import {
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 import type { Job } from "@/lib/types";
+import JobDetailModal from "@/components/job-detail-modal";
 
 export default function MatchesPage() {
   const { applications, addApplication } = useAppStore();
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const jobs = [...MOCK_JOBS].sort((a, b) => b.matchScore - a.matchScore);
 
   const handleSave = (job: Job) => {
@@ -35,7 +38,8 @@ export default function MatchesPage() {
           return (
             <div
               key={job.id}
-              className="p-4 rounded-xl border border-border bg-card hover:bg-card-hover hover:border-border-light transition-all"
+              onClick={() => setSelectedJob(job)}
+              className="p-4 rounded-xl border border-border bg-card hover:bg-card-hover hover:border-border-light transition-all cursor-pointer"
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1 min-w-0">
@@ -83,7 +87,10 @@ export default function MatchesPage() {
               {/* Actions */}
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => handleSave(job)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSave(job);
+                  }}
                   disabled={isSaved}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer active:scale-[0.97] ${
                     isSaved
@@ -96,6 +103,7 @@ export default function MatchesPage() {
                 </button>
                 <a
                   href={job.applyUrl}
+                  onClick={(e) => e.stopPropagation()}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-accent hover:bg-accent-hover text-white transition-all active:scale-[0.97]"
                 >
                   <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
@@ -106,6 +114,8 @@ export default function MatchesPage() {
           );
         })}
       </div>
+
+      <JobDetailModal job={selectedJob} onClose={() => setSelectedJob(null)} />
     </div>
   );
 }

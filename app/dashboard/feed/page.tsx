@@ -12,6 +12,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import type { Job } from "@/lib/types";
+import JobDetailModal from "@/components/job-detail-modal";
 
 export default function JobFeedPage() {
   const { applications, addApplication } = useAppStore();
@@ -20,6 +21,7 @@ export default function JobFeedPage() {
   const [filterArrangement, setFilterArrangement] = useState<string>("");
   const [filterSize, setFilterSize] = useState<string>("");
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
   const filteredJobs = useMemo(() => {
     return MOCK_JOBS.filter((job) => {
@@ -176,7 +178,8 @@ export default function JobFeedPage() {
           return (
             <div
               key={job.id}
-              className={`p-4 rounded-2xl border border-border bg-card hover:bg-card-hover hover:border-border-light transition-all animate-fadeIn stagger-${Math.min(i + 1, 5)}`}
+              onClick={() => setSelectedJob(job)}
+              className={`p-4 rounded-2xl border border-border bg-card hover:bg-card-hover hover:border-border-light transition-all cursor-pointer animate-fadeIn stagger-${Math.min(i + 1, 5)}`}
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1 min-w-0">
@@ -210,7 +213,10 @@ export default function JobFeedPage() {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <button
-                    onClick={() => handleSave(job)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSave(job);
+                    }}
                     disabled={isSaved}
                     className={`p-1.5 rounded-lg transition-all cursor-pointer active:scale-[0.93] ${
                       isSaved
@@ -223,6 +229,7 @@ export default function JobFeedPage() {
                   </button>
                   <a
                     href={job.applyUrl}
+                    onClick={(e) => e.stopPropagation()}
                     className="p-1.5 rounded-lg text-muted hover:text-accent hover:bg-accent-muted transition-all"
                     title="Apply"
                   >
@@ -244,6 +251,8 @@ export default function JobFeedPage() {
           </div>
         )}
       </div>
+
+      <JobDetailModal job={selectedJob} onClose={() => setSelectedJob(null)} />
     </div>
   );
 }

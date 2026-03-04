@@ -27,6 +27,7 @@ export const MOCK_JOBS: Job[] = [
     description:
       "Join a new project team to design and balance core gameplay systems. You'll prototype mechanics, run playtests, and work closely with engineers to iterate on game feel.",
     location: "Los Angeles, CA",
+    coordinates: { lat: 34.0522, lng: -118.2437 },
     workArrangement: "hybrid",
     employmentType: "full-time",
     companySize: "large",
@@ -71,6 +72,7 @@ export const MOCK_JOBS: Job[] = [
     description:
       "Work on training and fine-tuning large language models. You'll experiment with architectures, debug training runs, and collaborate with researchers. Strong Python and PyTorch experience required.",
     location: "San Francisco, CA",
+    coordinates: { lat: 37.7749, lng: -122.4194 },
     workArrangement: "onsite",
     employmentType: "full-time",
     companySize: "medium",
@@ -96,6 +98,7 @@ export const MOCK_JOBS: Job[] = [
     description:
       "Build and maintain payment APIs and internal tools. You'll work across Ruby and React, tackle database performance, and help design APIs that thousands of businesses depend on.",
     location: "Seattle, WA",
+    coordinates: { lat: 47.6062, lng: -122.3321 },
     workArrangement: "hybrid",
     employmentType: "full-time",
     companySize: "large",
@@ -145,6 +148,7 @@ export const MOCK_JOBS: Job[] = [
     description:
       "Manage and improve CI/CD pipelines, cloud infrastructure, and monitoring for a large-scale SaaS platform. Terraform, Kubernetes, and AWS experience expected.",
     location: "Boston, MA",
+    coordinates: { lat: 42.3601, lng: -71.0589 },
     workArrangement: "hybrid",
     employmentType: "full-time",
     companySize: "large",
@@ -164,6 +168,7 @@ export const MOCK_JOBS: Job[] = [
     description:
       "Plan and run user studies, usability tests, and surveys to inform product decisions. You'll partner with designers and PMs to identify research questions and turn findings into recommendations.",
     location: "San Francisco, CA",
+    coordinates: { lat: 37.7849, lng: -122.4094 },
     workArrangement: "hybrid",
     employmentType: "full-time",
     companySize: "medium",
@@ -208,6 +213,7 @@ export const MOCK_JOBS: Job[] = [
     description:
       "Build and ship features for Arc's iOS app. Small team, so you'll own large surface areas — from networking to custom UI components. SwiftUI is our primary framework but UIKit knowledge helps.",
     location: "New York, NY",
+    coordinates: { lat: 40.7128, lng: -74.006 },
     workArrangement: "hybrid",
     employmentType: "full-time",
     companySize: "startup",
@@ -252,6 +258,7 @@ export const MOCK_JOBS: Job[] = [
     description:
       "Design math and science curricula for K-12 learners. You'll create lesson plans, assessments, and interactive exercises. Teaching or tutoring experience is a strong plus.",
     location: "Mountain View, CA",
+    coordinates: { lat: 37.3861, lng: -122.0839 },
     workArrangement: "hybrid",
     employmentType: "full-time",
     companySize: "medium",

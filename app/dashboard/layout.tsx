@@ -15,6 +15,7 @@ import {
   BuildingOffice2Icon,
   PlusCircleIcon,
   ClipboardDocumentListIcon,
+  MapIcon,
 } from "@heroicons/react/24/outline";
 import {
   HomeIcon as HomeIconSolid,
@@ -25,6 +26,7 @@ import {
   BuildingOffice2Icon as BuildingOffice2IconSolid,
   PlusCircleIcon as PlusCircleIconSolid,
   ClipboardDocumentListIcon as ClipboardDocumentListIconSolid,
+  MapIcon as MapIconSolid,
 } from "@heroicons/react/24/solid";
 
 const navItems = [
@@ -45,6 +47,12 @@ const navItems = [
     label: "Job Feed",
     icon: MagnifyingGlassIcon,
     activeIcon: MagnifyingGlassIconSolid,
+  },
+  {
+    href: "/dashboard/map",
+    label: "Job Map",
+    icon: MapIcon,
+    activeIcon: MapIconSolid,
   },
   {
     href: "/dashboard/tracker",
