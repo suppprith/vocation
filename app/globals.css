@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: #060608;
+  --color-foreground: #f0f0f2;
+  --color-card: #0e0e12;
+  --color-card-hover: #151519;
+  --color-border: #1e1e24;
+  --color-border-light: #2a2a32;
+  --color-muted: #9494a0;
+  --color-muted-foreground: #5c5c6a;
+  --color-accent: #3b82f6;
+  --color-accent-hover: #60a5fa;
+  --color-accent-muted: rgba(59, 130, 246, 0.12);
+  --color-accent-glow: rgba(59, 130, 246, 0.06);
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+  --color-surface: #0a0a0d;
+  --color-surface-raised: #111115;
+  --color-input: #0c0c10;
+  --font-sans: var(--font-sequel), system-ui, -apple-system, sans-serif;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1e1e24 transparent;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(59, 130, 246, 0.25);
+  color: #fff;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+/* Focus ring utility */
+.focus-ring {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow:
+    0 0 0 3px var(--color-accent-muted),
+    0 0 0 1px var(--color-accent);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.35s ease-out forwards;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.2s ease-out forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Stagger animation delays for lists */
+.stagger-1 {
+  animation-delay: 0.05s;
+}
+.stagger-2 {
+  animation-delay: 0.1s;
+}
+.stagger-3 {
+  animation-delay: 0.15s;
+}
+.stagger-4 {
+  animation-delay: 0.2s;
+}
