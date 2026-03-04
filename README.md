@@ -1,8 +1,8 @@
-# Vocation — The Holistic Career Pathfinder
+# Vocation - The Holistic Career Pathfinder
 
 **Live:** [vocation.suppprith.com](https://vocation.suppprith.com)
 
-Vocation is a career discovery platform that treats job hunting as more than a keyword exercise. It builds a complete picture of who you are — your skills, your passions, how you like to work, what kind of environment you thrive in — and uses that to surface roles that actually fit. It also has a full employer side, so companies can post jobs, manage listings, and set up their company presence in the same app.
+Vocation is a career discovery platform that treats job hunting as more than a keyword exercise. It builds a complete picture of who you are - your skills, your passions, how you like to work, what kind of environment you thrive in - and uses that to surface roles that actually fit. It also has a full employer side, so companies can post jobs, manage listings, and set up their company presence in the same app.
 
 ## What It Does
 
@@ -14,7 +14,7 @@ Standard job boards match you on keywords. Vocation matches you on the full pict
 
 - Combined sign-in and sign-up on one page with a tab switcher
 - Persistent sessions via local storage
-- Auth guards on all protected routes — unauthenticated users are redirected back to the root
+- Auth guards on all protected routes - unauthenticated users are redirected back to the root
 
 ### Onboarding
 
@@ -42,7 +42,7 @@ Standard job boards match you on keywords. Vocation matches you on the full pict
 ### Job Feed
 
 - Searchable feed across job title, company, description, and skills
-- Filter by industry, work arrangement, and company size — filters stack and clear independently
+- Filter by industry, work arrangement, and company size - filters stack and clear independently
 - Live result count updates as you type or filter
 
 ### Job Map
@@ -57,7 +57,7 @@ Standard job boards match you on keywords. Vocation matches you on the full pict
 
 - Kanban board with five stages: Saved → Applied → Interviewing → Offer → Rejected
 - Move cards forward or backward between stages
-- Inline notes per application — click to edit, save or cancel in place
+- Inline notes per application - click to edit, save or cancel in place
 - Remove any application you no longer want to track
 
 ### Profile
@@ -70,21 +70,21 @@ Standard job boards match you on keywords. Vocation matches you on the full pict
 - Career preferences shown as tag groups
 - Everything persists across sessions
 
-### Employer — Company Profile
+### Employer - Company Profile
 
 - Set up a company page with name, website, industry, size, location, and description
 - Culture write-up, benefits list, tech stack tags, founded year, and LinkedIn URL
 - Tags added inline, removed individually
 
-### Employer — Post a Job
+### Employer - Post a Job
 
 - Full job posting form: title, department, location, work arrangement, employment type, experience level
 - Compensation range with currency selector
-- Job summary, responsibilities, requirements, nice-to-haves, and required skills — all as editable lists
+- Job summary, responsibilities, requirements, nice-to-haves, and required skills - all as editable lists
 - Application URL and/or contact email
 - Posts as draft by default; publish when ready
 
-### Employer — Listings
+### Employer - Listings
 
 - All posted jobs in one view with status badges (Draft, Active, Paused, Closed)
 - Filter by status with live counts per tab

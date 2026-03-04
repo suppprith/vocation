@@ -122,7 +122,7 @@ export default function PostJobPage() {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-2xl">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-2xl">
       <div className="mb-6">
         <h1 className="text-lg font-bold tracking-tight">Post a Job</h1>
         <p className="text-xs text-muted mt-0.5">
@@ -165,7 +165,7 @@ export default function PostJobPage() {
             />
           </Field>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="Department">
               <input
                 type="text"
@@ -187,7 +187,7 @@ export default function PostJobPage() {
             </Field>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Field label="Arrangement">
               <select
                 value={workArrangement}
@@ -252,7 +252,7 @@ export default function PostJobPage() {
 
         {/* ── Compensation ── */}
         <Section title="Compensation">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Field label="Salary min">
               <input
                 type="text"
@@ -402,7 +402,7 @@ export default function PostJobPage() {
 
         {/* ── Application ── */}
         <Section title="How to Apply">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="Application URL">
               <input
                 type="url"

@@ -75,7 +75,7 @@ export default function CompanyPage() {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-2xl">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-2xl">
       <div className="mb-6">
         <h1 className="text-lg font-bold tracking-tight">Company Profile</h1>
         <p className="text-xs text-muted mt-0.5">
@@ -100,7 +100,7 @@ export default function CompanyPage() {
             />
           </Field>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="Industry">
               <select
                 value={industry}
@@ -132,7 +132,7 @@ export default function CompanyPage() {
             </Field>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="Headquarters">
               <input
                 type="text"

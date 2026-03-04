@@ -97,7 +97,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-3xl">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-3xl">
       <div className="mb-5">
         <h1 className="text-lg font-bold tracking-tight">Profile</h1>
         <p className="text-xs text-muted mt-0.5">
@@ -274,7 +274,7 @@ export default function ProfilePage() {
           <div>
             {holisticProfile ? (
               <>
-                <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                   <StyleStat
                     label="Collaboration"
                     value={holisticProfile.workStyle.collaboration}
@@ -524,8 +524,8 @@ function MiniSlider({
   return (
     <div>
       <label className="block text-xs font-semibold mb-2">{label}</label>
-      <div className="flex items-center gap-3">
-        <span className="text-[10px] text-muted w-20 text-right">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <span className="text-[10px] text-muted w-16 sm:w-20 text-right shrink-0">
           {leftLabel}
         </span>
         <div className="flex-1 flex items-center gap-1.5">
@@ -545,7 +545,7 @@ function MiniSlider({
             </button>
           ))}
         </div>
-        <span className="text-[10px] text-muted w-20">{rightLabel}</span>
+        <span className="text-[10px] text-muted w-16 sm:w-20 shrink-0">{rightLabel}</span>
       </div>
     </div>
   );

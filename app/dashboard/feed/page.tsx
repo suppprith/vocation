@@ -64,7 +64,7 @@ export default function JobFeedPage() {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-4xl">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
       <div className="mb-5">
         <h1 className="text-lg font-bold tracking-tight mb-0.5">Job Feed</h1>
         <p className="text-xs text-muted">
@@ -74,7 +74,7 @@ export default function JobFeedPage() {
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-4">
         <div className="relative flex-1">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input

@@ -53,7 +53,7 @@ export default function JobDetailModal({ job, onClose }: JobDetailModalProps) {
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4"
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose();
       }}
@@ -62,9 +62,9 @@ export default function JobDetailModal({ job, onClose }: JobDetailModalProps) {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
       {/* Panel */}
-      <div className="relative w-full max-w-lg max-h-[85vh] bg-surface border border-border rounded-2xl shadow-2xl flex flex-col animate-scaleIn overflow-hidden">
+      <div className="relative w-full sm:max-w-lg max-h-[100vh] sm:max-h-[85vh] bg-surface border-t sm:border border-border sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col animate-scaleIn overflow-hidden">
         {/* Header */}
-        <div className="flex items-start justify-between p-5 pb-0">
+        <div className="flex items-start justify-between p-4 sm:p-5 pb-0">
           <div className="flex-1 min-w-0 pr-3">
             <h2 className="text-base font-bold tracking-tight leading-snug">
               {job.title}
@@ -80,7 +80,7 @@ export default function JobDetailModal({ job, onClose }: JobDetailModalProps) {
         </div>
 
         {/* Meta chips */}
-        <div className="flex flex-wrap items-center gap-2 px-5 pt-3">
+        <div className="flex flex-wrap items-center gap-2 px-4 sm:px-5 pt-3">
           <Chip icon={<MapPinIcon className="w-3.5 h-3.5" />}>
             {job.location}
           </Chip>
@@ -107,7 +107,7 @@ export default function JobDetailModal({ job, onClose }: JobDetailModalProps) {
         </div>
 
         {/* Match score */}
-        <div className="mx-5 mt-3.5 p-3 rounded-xl bg-accent-muted/50 border border-accent/10">
+        <div className="mx-4 sm:mx-5 mt-3.5 p-3 rounded-xl bg-accent-muted/50 border border-accent/10">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-semibold text-accent">
               Match Score
@@ -126,7 +126,7 @@ export default function JobDetailModal({ job, onClose }: JobDetailModalProps) {
         </div>
 
         {/* Body — scrollable */}
-        <div className="flex-1 overflow-y-auto px-5 pt-4 pb-5 space-y-4">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-5 pt-4 pb-5 space-y-4">
           {/* Description */}
           <div>
             <h3 className="text-xs font-semibold text-muted uppercase tracking-wider mb-1.5">
@@ -158,7 +158,7 @@ export default function JobDetailModal({ job, onClose }: JobDetailModalProps) {
         </div>
 
         {/* Footer actions */}
-        <div className="flex items-center gap-2.5 px-5 py-4 border-t border-border bg-surface">
+        <div className="flex items-center gap-2.5 px-4 sm:px-5 py-4 border-t border-border bg-surface">
           <button
             onClick={handleSave}
             disabled={isSaved}

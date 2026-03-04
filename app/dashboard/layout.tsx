@@ -16,6 +16,8 @@ import {
   PlusCircleIcon,
   ClipboardDocumentListIcon,
   MapIcon,
+  Bars3Icon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import {
   HomeIcon as HomeIconSolid,
@@ -98,6 +100,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAppStore();
   const [mounted, setMounted] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -109,12 +112,47 @@ export default function DashboardLayout({
     }
   }, [mounted, isAuthenticated, router]);
 
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
   if (!mounted) return null;
 
   return (
     <div className="min-h-screen bg-background flex">
+      {/* Mobile top bar */}
+      <div className="fixed top-0 left-0 right-0 h-14 bg-surface border-b border-border flex items-center justify-between px-4 z-40 md:hidden">
+        <div className="flex items-center gap-2.5">
+          <Image src="/logo.svg" alt="Vocation" width={22} height={22} />
+          <span className="font-bold tracking-tight text-sm text-lime">Vocation</span>
+        </div>
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="p-2 rounded-xl text-muted hover:text-foreground hover:bg-card transition-all cursor-pointer"
+        >
+          {sidebarOpen ? (
+            <XMarkIcon className="w-5 h-5" />
+          ) : (
+            <Bars3Icon className="w-5 h-5" />
+          )}
+        </button>
+      </div>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-[240px] border-r border-border flex flex-col fixed top-0 left-0 bottom-0 bg-surface z-30">
+      <aside
+        className={`w-[240px] border-r border-border flex flex-col fixed top-0 left-0 bottom-0 bg-surface z-50 transition-transform duration-200 ease-out ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0 md:z-30`}
+      >
         <div className="px-5 h-14 flex items-center gap-2.5 border-b border-border">
           <Image src="/logo.svg" alt="Vocation" width={24} height={24} />
           <span className="font-bold tracking-tight text-sm">Vocation</span>
@@ -203,7 +241,7 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 ml-[240px] min-h-screen">{children}</main>
+      <main className="flex-1 md:ml-[240px] min-h-screen pt-14 md:pt-0">{children}</main>
     </div>
   );
 }

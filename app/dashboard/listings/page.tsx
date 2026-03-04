@@ -45,8 +45,8 @@ export default function ListingsPage() {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-4xl">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
+      <div className="flex items-start sm:items-center justify-between mb-6 gap-3">
         <div>
           <h1 className="text-lg font-bold tracking-tight">Job Listings</h1>
           <p className="text-xs text-muted mt-0.5">
@@ -63,13 +63,13 @@ export default function ListingsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-1.5 mb-5">
+      <div className="flex items-center gap-1.5 mb-5 overflow-x-auto pb-1">
         {(["all", "active", "draft", "paused", "closed"] as const).map(
           (status) => (
             <button
               key={status}
               onClick={() => setFilter(status)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                 filter === status
                   ? "bg-accent text-white"
                   : "bg-card hover:bg-surface-raised text-muted-foreground"
@@ -144,7 +144,7 @@ function ListingCard({
   });
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-card border border-border rounded-xl hover:border-accent/20 transition-all">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 bg-card border border-border rounded-xl hover:border-accent/20 transition-all">
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2.5">
@@ -155,7 +155,7 @@ function ListingCard({
             {cfg.label}
           </span>
         </div>
-        <div className="flex items-center gap-3 mt-1 text-xs text-muted">
+        <div className="flex items-center gap-2 sm:gap-3 mt-1 text-xs text-muted flex-wrap">
           <span>{job.location}</span>
           <span className="opacity-40">·</span>
           <span className="capitalize">

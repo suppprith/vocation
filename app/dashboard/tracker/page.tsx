@@ -145,7 +145,7 @@ export default function TrackerPage() {
   const totalApps = applications.length;
 
   return (
-    <div className="p-6 lg:p-8 h-[calc(100vh)] flex flex-col">
+    <div className="p-4 sm:p-6 lg:p-8 h-[calc(100vh-3.5rem)] md:h-[calc(100vh)] flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between mb-5 shrink-0">
         <div>
@@ -170,7 +170,7 @@ export default function TrackerPage() {
                 className="fixed inset-0 z-40"
                 onClick={() => setShowAddMenu(false)}
               />
-              <div className="absolute right-0 top-full mt-2 w-80 bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-80 bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden">
                 <div className="p-3 border-b border-border">
                   <span className="text-xs font-semibold text-muted">
                     Add from job feed
@@ -227,7 +227,7 @@ export default function TrackerPage() {
             return (
               <div
                 key={column.status}
-                className="shrink-0 w-65 flex flex-col min-h-0"
+                className="shrink-0 w-[260px] sm:w-65 flex flex-col min-h-0"
                 onDragOver={(e) => handleDragOver(e, column.status)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, column.status)}

@@ -59,9 +59,9 @@ export default function MapPage() {
   const defaultZoom = 3.8;
 
   return (
-    <div className="h-[calc(100vh)] flex flex-col">
+    <div className="h-[calc(100vh-3.5rem)] md:h-[calc(100vh)] flex flex-col">
       {/* Header bar */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-surface shrink-0">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-border bg-surface shrink-0">
         <div>
           <h1 className="text-sm font-bold tracking-tight">Job Map</h1>
           <p className="text-[11px] text-muted">

@@ -207,11 +207,11 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="border-b border-border bg-surface/50 backdrop-blur-sm px-6 py-4 sticky top-0 z-20">
+      <header className="border-b border-border bg-surface/50 backdrop-blur-sm px-4 sm:px-6 py-4 sticky top-0 z-20">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image src="/logo.svg" alt="Vocation" width={26} height={26} />
-            <span className="font-bold tracking-tight text-sm">Vocation</span>
+            <span className="font-bold tracking-tight text-sm hidden sm:inline">Vocation</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted font-medium">
@@ -230,7 +230,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* Step indicators */}
-      <div className="border-b border-border px-6 py-3 bg-surface/30">
+      <div className="border-b border-border px-4 sm:px-6 py-3 bg-surface/30">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-1">
             {STEPS.map((s, i) => (
@@ -269,7 +269,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-6 py-10 overflow-y-auto">
+      <div className="flex-1 px-4 sm:px-6 py-6 sm:py-10 overflow-y-auto">
         <div className="max-w-2xl mx-auto animate-fadeIn" key={step}>
           {/* Step 0: Resume */}
           {step === 0 && (
@@ -379,7 +379,7 @@ export default function OnboardingPage() {
                 {education.map((edu, i) => (
                   <div
                     key={i}
-                    className="grid grid-cols-2 gap-3 mb-3 p-4 bg-card border border-border rounded-2xl"
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3 p-4 bg-card border border-border rounded-2xl"
                   >
                     <input
                       value={edu.institution}
@@ -445,7 +445,7 @@ export default function OnboardingPage() {
                 {experience.map((exp, i) => (
                   <div
                     key={i}
-                    className="grid grid-cols-2 gap-3 mb-3 p-4 bg-card border border-border rounded-2xl"
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3 p-4 bg-card border border-border rounded-2xl"
                   >
                     <input
                       value={exp.company}
@@ -736,7 +736,7 @@ export default function OnboardingPage() {
                     value={salaryMin}
                     onChange={(e) => setSalaryMin(e.target.value)}
                     placeholder="Min"
-                    className="w-36 px-3.5 py-2.5 bg-input border border-border rounded-xl text-sm focus:outline-none focus:border-accent transition-all"
+                    className="flex-1 min-w-0 px-3.5 py-2.5 bg-input border border-border rounded-xl text-sm focus:outline-none focus:border-accent transition-all"
                   />
                   <span className="text-xs text-muted font-medium">to</span>
                   <input
@@ -744,13 +744,13 @@ export default function OnboardingPage() {
                     value={salaryMax}
                     onChange={(e) => setSalaryMax(e.target.value)}
                     placeholder="Max"
-                    className="w-36 px-3.5 py-2.5 bg-input border border-border rounded-xl text-sm focus:outline-none focus:border-accent transition-all"
+                    className="flex-1 min-w-0 px-3.5 py-2.5 bg-input border border-border rounded-xl text-sm focus:outline-none focus:border-accent transition-all"
                   />
                 </div>
               </div>
 
               {/* Relocate & Start */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold mb-3">
                     Willing to Relocate
@@ -849,7 +849,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* Footer navigation */}
-      <div className="border-t border-border bg-surface/50 backdrop-blur-sm px-6 py-4 sticky bottom-0 z-20">
+      <div className="border-t border-border bg-surface/50 backdrop-blur-sm px-4 sm:px-6 py-4 sticky bottom-0 z-20">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <button
             onClick={() => step > 0 && setStep(step - 1)}

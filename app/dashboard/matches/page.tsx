@@ -24,7 +24,7 @@ export default function MatchesPage() {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-4xl">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
       <div className="mb-5">
         <h1 className="text-lg font-bold tracking-tight">Matches</h1>
         <p className="text-xs text-muted mt-0.5">
