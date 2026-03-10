@@ -1,9 +1,13 @@
 "use client";
 
-import { useState, useRef, type DragEvent } from "react";
-import { useAppStore } from "@/lib/store";
-import { MOCK_JOBS } from "@/lib/mock-data";
-import type { Application, ApplicationStatus, Job } from "@/lib/types";
+import { useState, useEffect, type DragEvent } from "react";
+import {
+  apiGetTracker,
+  apiUpdateApplicationStatus,
+  apiDeleteApplication,
+} from "@/lib/api";
+import type { ApiApplication } from "@/lib/api";
+import type { ApplicationStatus } from "@/lib/types";
 import {
   BookmarkIcon,
   PaperAirplaneIcon,
@@ -14,10 +18,7 @@ import {
   TrashIcon,
   XMarkIcon,
   CheckIcon,
-  PlusIcon,
-  EllipsisHorizontalIcon,
   MapPinIcon,
-  ClockIcon,
 } from "@heroicons/react/24/outline";
 
 const COLUMNS: {
@@ -65,23 +66,36 @@ const COLUMNS: {
 ];
 
 export default function TrackerPage() {
-  const {
-    applications,
-    addApplication,
-    updateApplicationStatus,
-    updateApplicationNotes,
-    removeApplication,
-  } = useAppStore();
+  const [tracker, setTracker] = useState<
+    Record<ApplicationStatus, ApiApplication[]>
+  >({
+    saved: [],
+    applied: [],
+    interviewing: [],
+    offer: [],
+    rejected: [],
+  });
+  const [loading, setLoading] = useState(true);
 
   const [editingNotesId, setEditingNotesId] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] =
     useState<ApplicationStatus | null>(null);
-  const [showAddMenu, setShowAddMenu] = useState(false);
 
-  const getAppsForColumn = (status: ApplicationStatus) =>
-    applications.filter((a) => a.status === status);
+  const loadTracker = async () => {
+    try {
+      const res = await apiGetTracker();
+      setTracker(res.tracker as Record<ApplicationStatus, ApiApplication[]>);
+    } catch {}
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadTracker();
+  }, []);
+
+  const getAppsForColumn = (status: ApplicationStatus) => tracker[status] || [];
 
   const handleDragStart = (e: DragEvent, appId: string) => {
     setDraggedId(appId);
@@ -108,41 +122,45 @@ export default function TrackerPage() {
     setDragOverColumn(null);
   };
 
-  const handleDrop = (e: DragEvent, status: ApplicationStatus) => {
+  const handleDrop = async (e: DragEvent, status: ApplicationStatus) => {
     e.preventDefault();
     if (draggedId) {
-      updateApplicationStatus(draggedId, status);
+      try {
+        await apiUpdateApplicationStatus(draggedId, status);
+        await loadTracker();
+      } catch {}
     }
     setDraggedId(null);
     setDragOverColumn(null);
   };
 
-  const startEditNotes = (app: Application) => {
+  const startEditNotes = (app: ApiApplication) => {
     setEditingNotesId(app.id);
-    setNoteText(app.notes);
+    setNoteText(app.notes || "");
   };
 
-  const saveNotes = () => {
+  const saveNotes = async () => {
     if (editingNotesId) {
-      updateApplicationNotes(editingNotesId, noteText);
+      try {
+        await apiUpdateApplicationStatus(editingNotesId, "", noteText);
+      } catch {
+        // If status update fails (no status change), just reload
+      }
+      await loadTracker();
       setEditingNotesId(null);
       setNoteText("");
     }
   };
 
-  const quickAddJob = (job: Job) => {
-    const exists = applications.find((a) => a.job.id === job.id);
-    if (!exists) {
-      addApplication(job, "saved");
-    }
-    setShowAddMenu(false);
+  const handleRemove = async (id: string) => {
+    try {
+      await apiDeleteApplication(id);
+      await loadTracker();
+    } catch {}
   };
 
-  const availableJobs = MOCK_JOBS.filter(
-    (job) => !applications.some((a) => a.job.id === job.id),
-  );
-
-  const totalApps = applications.length;
+  const allApps = Object.values(tracker).flat();
+  const totalApps = allApps.length;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 h-[calc(100vh-3.5rem)] md:h-[calc(100vh)] flex flex-col">
@@ -154,58 +172,14 @@ export default function TrackerPage() {
             {totalApps} {totalApps === 1 ? "job" : "jobs"} tracked
           </p>
         </div>
-        <div className="relative">
-          <button
-            onClick={() => setShowAddMenu(!showAddMenu)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-semibold transition-all cursor-pointer active:scale-[0.97]"
-          >
-            <PlusIcon className="w-3.5 h-3.5" />
-            Add Job
-          </button>
-
-          {/* Quick-add dropdown */}
-          {showAddMenu && (
-            <>
-              <div
-                className="fixed inset-0 z-40"
-                onClick={() => setShowAddMenu(false)}
-              />
-              <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-80 bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden">
-                <div className="p-3 border-b border-border">
-                  <span className="text-xs font-semibold text-muted">
-                    Add from job feed
-                  </span>
-                </div>
-                <div className="max-h-72 overflow-y-auto">
-                  {availableJobs.length === 0 ? (
-                    <div className="p-4 text-xs text-muted-foreground text-center">
-                      All jobs already added
-                    </div>
-                  ) : (
-                    availableJobs.slice(0, 8).map((job) => (
-                      <button
-                        key={job.id}
-                        onClick={() => quickAddJob(job)}
-                        className="w-full text-left px-3 py-2.5 hover:bg-card-hover transition-colors cursor-pointer border-b border-border last:border-0"
-                      >
-                        <div className="text-xs font-semibold truncate">
-                          {job.title}
-                        </div>
-                        <div className="text-[11px] text-muted truncate">
-                          {job.company} · {job.location}
-                        </div>
-                      </button>
-                    ))
-                  )}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
       </div>
 
       {/* Kanban Board */}
-      {applications.length === 0 ? (
+      {loading ? (
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-xs text-muted">Loading tracker...</p>
+        </div>
+      ) : totalApps === 0 ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="w-12 h-12 rounded-2xl bg-surface-raised border border-border flex items-center justify-center mx-auto mb-3">
@@ -291,9 +265,6 @@ export default function TrackerPage() {
                         <span className="px-1.5 py-0.5 rounded-md bg-surface-raised text-[10px] text-muted capitalize">
                           {app.job.workArrangement}
                         </span>
-                        <span className="px-1.5 py-0.5 rounded-md bg-surface-raised text-[10px] text-muted">
-                          {app.job.industry}
-                        </span>
                       </div>
 
                       {/* Notes */}
@@ -334,7 +305,7 @@ export default function TrackerPage() {
                       {/* Actions */}
                       <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-border/60">
                         <span className="text-[10px] text-muted-foreground">
-                          {formatDate(app.updatedDate)}
+                          {formatDate(app.appliedAt)}
                         </span>
                         <div className="flex items-center gap-0.5">
                           <button
@@ -345,7 +316,7 @@ export default function TrackerPage() {
                             <PencilSquareIcon className="w-3 h-3" />
                           </button>
                           <button
-                            onClick={() => removeApplication(app.id)}
+                            onClick={() => handleRemove(app.id)}
                             className="p-1 rounded-md text-muted-foreground hover:text-danger transition-all cursor-pointer"
                             title="Remove"
                           >

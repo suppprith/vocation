@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
+import { apiCreateJobPosting } from "@/lib/api";
 import type { JobPostingStatus } from "@/lib/types";
 import {
   CheckIcon,
@@ -21,12 +22,13 @@ const EXPERIENCE_LEVELS = [
 
 export default function PostJobPage() {
   const router = useRouter();
-  const { companyProfile, addJobPosting } = useAppStore();
+  const { companyProfile } = useAppStore();
 
   // Basic info
   const [title, setTitle] = useState("");
   const [department, setDepartment] = useState("");
   const [location, setLocation] = useState("");
+  const [saving, setSaving] = useState(false);
   const [workArrangement, setWorkArrangement] = useState<
     "remote" | "hybrid" | "onsite"
   >("remote");
@@ -82,7 +84,7 @@ export default function PostJobPage() {
     setter(list.filter((x) => x !== item));
   };
 
-  const handleSubmit = (status: JobPostingStatus) => {
+  const handleSubmit = async (status: JobPostingStatus) => {
     setError("");
 
     if (!title.trim()) {
@@ -98,27 +100,30 @@ export default function PostJobPage() {
       return;
     }
 
-    addJobPosting({
-      title: title.trim(),
-      department: department.trim() || undefined,
-      location: location.trim(),
-      workArrangement,
-      employmentType,
-      salaryMin: salaryMin.trim() || undefined,
-      salaryMax: salaryMax.trim() || undefined,
-      currency,
-      summary: summary.trim(),
-      responsibilities,
-      requirements,
-      niceToHave,
-      skills,
-      experienceLevel,
-      applicationUrl: applicationUrl.trim() || undefined,
-      applicationEmail: applicationEmail.trim() || undefined,
-      status,
-    });
-
-    router.push("/dashboard/listings");
+    setSaving(true);
+    try {
+      await apiCreateJobPosting({
+        title: title.trim(),
+        description: summary.trim(),
+        location: location.trim(),
+        workArrangement,
+        employmentType,
+        skills,
+        salaryRange:
+          salaryMin.trim() && salaryMax.trim()
+            ? `${currency} ${Number(salaryMin).toLocaleString()}–${Number(salaryMax).toLocaleString()}`
+            : undefined,
+        salaryMin: salaryMin.trim() ? Number(salaryMin) : undefined,
+        salaryMax: salaryMax.trim() ? Number(salaryMax) : undefined,
+        applyUrl: applicationUrl.trim() || undefined,
+        industry: companyProfile?.industry || undefined,
+        companySize: companyProfile?.size || undefined,
+      });
+      router.push("/dashboard/listings");
+    } catch {
+      setError("Failed to create job posting. Please try again.");
+    }
+    setSaving(false);
   };
 
   return (
@@ -428,16 +433,18 @@ export default function PostJobPage() {
         <div className="flex items-center gap-3 pt-2 border-t border-border">
           <button
             onClick={() => handleSubmit("active")}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-hover text-white rounded-xl text-sm font-semibold transition-all cursor-pointer active:scale-[0.97]"
+            disabled={saving}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-hover disabled:opacity-40 text-white rounded-xl text-sm font-semibold transition-all cursor-pointer active:scale-[0.97]"
           >
             <CheckIcon className="w-4 h-4" />
-            Publish
+            {saving ? "Publishing..." : "Publish"}
           </button>
           <button
             onClick={() => handleSubmit("draft")}
-            className="inline-flex items-center gap-2 px-5 py-2.5 border border-border hover:bg-card rounded-xl text-sm font-medium transition-all cursor-pointer active:scale-[0.97]"
+            disabled={saving}
+            className="inline-flex items-center gap-2 px-5 py-2.5 border border-border hover:bg-card disabled:opacity-40 rounded-xl text-sm font-medium transition-all cursor-pointer active:scale-[0.97]"
           >
-            Save as Draft
+            {saving ? "Saving..." : "Save as Draft"}
           </button>
         </div>
       </div>

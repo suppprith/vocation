@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { MOCK_JOBS } from "@/lib/mock-data";
+import { apiGetMapJobs } from "@/lib/api";
+import type { ApiJob } from "@/lib/api";
 import type { Job } from "@/lib/types";
 import JobDetailModal from "@/components/job-detail-modal";
 import {
@@ -37,15 +38,19 @@ const MapControlsComponent = dynamic(
   { ssr: false },
 );
 
-// Only show jobs that have coordinates (onsite / hybrid)
-const mappableJobs = MOCK_JOBS.filter((j) => j.coordinates != null);
-
 export default function MapPage() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [mappableJobs, setMappableJobs] = useState<ApiJob[]>([]);
   const [userCoords, setUserCoords] = useState<{
     longitude: number;
     latitude: number;
   } | null>(null);
+
+  useEffect(() => {
+    apiGetMapJobs()
+      .then((res) => setMappableJobs(res.jobs))
+      .catch(() => setMappableJobs([]));
+  }, []);
 
   const handleLocate = useCallback(
     (coords: { longitude: number; latitude: number }) => {
@@ -98,8 +103,8 @@ export default function MapPage() {
           {mappableJobs.map((job) => (
             <MapMarkerComponent
               key={job.id}
-              longitude={job.coordinates!.lng}
-              latitude={job.coordinates!.lat}
+              longitude={job.coordinates?.lng ?? 0}
+              latitude={job.coordinates?.lat ?? 0}
             >
               <MarkerContentComponent>
                 <div
@@ -154,7 +159,7 @@ export default function MapPage() {
                       {job.matchScore}% match
                     </span>
                     <button
-                      onClick={() => setSelectedJob(job)}
+                      onClick={() => setSelectedJob(job as unknown as Job)}
                       className="text-xs text-accent hover:text-accent-hover font-semibold cursor-pointer transition-colors"
                     >
                       View Details →

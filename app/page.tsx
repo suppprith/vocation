@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAppStore } from "@/lib/store";
+import { ApiError } from "@/lib/api";
 import {
   UserIcon,
   EnvelopeIcon,
@@ -20,13 +21,15 @@ export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const { login, signup, isAuthenticated, user } = useAppStore();
+  const { login, signup, isAuthenticated, user, rehydrateAuth } = useAppStore();
   const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
+    rehydrateAuth();
   }, []);
 
   useEffect(() => {
@@ -39,7 +42,7 @@ export default function AuthPage() {
     }
   }, [mounted, isAuthenticated, user, router]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -48,8 +51,19 @@ export default function AuthPage() {
         setError("Please fill in all fields.");
         return;
       }
-      login(email, password);
-      router.push("/dashboard");
+      setLoading(true);
+      try {
+        await login(email, password);
+        router.push("/dashboard");
+      } catch (err) {
+        if (err instanceof ApiError) {
+          setError(err.message);
+        } else {
+          setError("Something went wrong. Please try again.");
+        }
+      } finally {
+        setLoading(false);
+      }
     } else {
       if (!name || !email || !password) {
         setError("Please fill in all fields.");
@@ -59,8 +73,19 @@ export default function AuthPage() {
         setError("Password must be at least 6 characters.");
         return;
       }
-      signup(name, email, password);
-      router.push("/onboarding");
+      setLoading(true);
+      try {
+        await signup(name, email, password);
+        router.push("/onboarding");
+      } catch (err) {
+        if (err instanceof ApiError) {
+          setError(err.message);
+        } else {
+          setError("Something went wrong. Please try again.");
+        }
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -188,10 +213,15 @@ export default function AuthPage() {
 
           <button
             type="submit"
-            className="w-full py-2.5 bg-accent hover:bg-accent-hover active:scale-[0.98] text-white text-sm font-semibold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 mt-2"
+            disabled={loading}
+            className="w-full py-2.5 bg-accent hover:bg-accent-hover active:scale-[0.98] text-white text-sm font-semibold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {mode === "login" ? "Sign in" : "Create account"}
-            <ArrowRightIcon className="w-4 h-4" />
+            {loading
+              ? "Please wait..."
+              : mode === "login"
+                ? "Sign in"
+                : "Create account"}
+            {!loading && <ArrowRightIcon className="w-4 h-4" />}
           </button>
         </form>
 

@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAppStore } from "@/lib/store";
-import type { JobPosting, JobPostingStatus } from "@/lib/types";
+import {
+  apiGetJobPostings,
+  apiUpdateJobPostingStatus,
+  apiDeleteJobPosting,
+} from "@/lib/api";
+import type { ApiJobPosting } from "@/lib/api";
+import type { JobPostingStatus } from "@/lib/types";
 import {
   PencilSquareIcon,
   TrashIcon,
@@ -26,10 +31,38 @@ const STATUS_CONFIG: Record<
 
 export default function ListingsPage() {
   const router = useRouter();
-  const { jobPostings, updateJobPostingStatus, removeJobPosting } =
-    useAppStore();
+  const [jobPostings, setJobPostings] = useState<ApiJobPosting[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<JobPostingStatus | "all">("all");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+
+  const loadPostings = async () => {
+    try {
+      const res = await apiGetJobPostings();
+      setJobPostings(res.jobPostings);
+    } catch {
+      setJobPostings([]);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadPostings();
+  }, []);
+
+  const handleStatusChange = async (id: string, status: JobPostingStatus) => {
+    try {
+      await apiUpdateJobPostingStatus(id, status);
+      await loadPostings();
+    } catch {}
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await apiDeleteJobPosting(id);
+      await loadPostings();
+    } catch {}
+  };
 
   const filtered =
     filter === "all"
@@ -43,6 +76,14 @@ export default function ListingsPage() {
     paused: jobPostings.filter((j) => j.status === "paused").length,
     closed: jobPostings.filter((j) => j.status === "closed").length,
   };
+
+  if (loading) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
+        <p className="text-sm text-muted">Loading listings…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
@@ -105,12 +146,10 @@ export default function ListingsPage() {
             <ListingCard
               key={job.id}
               job={job}
-              onStatusChange={(status) =>
-                updateJobPostingStatus(job.id, status)
-              }
+              onStatusChange={(status) => handleStatusChange(job.id, status)}
               onDelete={() => {
                 if (confirmDelete === job.id) {
-                  removeJobPosting(job.id);
+                  handleDelete(job.id);
                   setConfirmDelete(null);
                 } else {
                   setConfirmDelete(job.id);
@@ -132,16 +171,18 @@ function ListingCard({
   onDelete,
   isConfirmingDelete,
 }: {
-  job: JobPosting;
+  job: ApiJobPosting;
   onStatusChange: (status: JobPostingStatus) => void;
   onDelete: () => void;
   isConfirmingDelete: boolean;
 }) {
   const cfg = STATUS_CONFIG[job.status];
-  const postedDate = new Date(job.createdDate).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
+  const postedDate = job.createdAt
+    ? new Date(job.createdAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      })
+    : "";
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 bg-card border border-border rounded-xl hover:border-accent/20 transition-all">
@@ -161,12 +202,12 @@ function ListingCard({
           <span className="capitalize">
             {job.workArrangement} · {job.employmentType}
           </span>
-          {job.salaryMin && job.salaryMax && (
+          {job.salaryMin != null && job.salaryMax != null && (
             <>
               <span className="opacity-40">·</span>
               <span>
-                {job.currency} {Number(job.salaryMin).toLocaleString()}–
-                {Number(job.salaryMax).toLocaleString()}
+                ${job.salaryMin.toLocaleString()}–$
+                {job.salaryMax.toLocaleString()}
               </span>
             </>
           )}

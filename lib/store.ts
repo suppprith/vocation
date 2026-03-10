@@ -14,14 +14,37 @@ import {
   JobPostingStatus,
 } from "./types";
 import { v4 as uuidv4 } from "uuid";
+import {
+  apiLogin,
+  apiSignup,
+  apiLogout,
+  apiGetMe,
+  clearToken,
+  getToken,
+  type AuthUser,
+} from "./api";
+
+function toUser(u: AuthUser): User {
+  return {
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    avatar: u.avatar ?? undefined,
+    onboardingComplete: u.onboardingComplete,
+    roles: u.roles,
+  };
+}
 
 interface AppState {
   // Auth
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => void;
-  signup: (name: string, email: string, password: string) => void;
-  logout: () => void;
+  authLoading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (name: string, email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  setUser: (user: User) => void;
+  rehydrateAuth: () => Promise<void>;
 
   // Onboarding step tracking
   onboardingStep: number;
@@ -71,29 +94,17 @@ export const useAppStore = create<AppState>()(
       // Auth
       user: null,
       isAuthenticated: false,
-      login: (_email: string, _password: string) => {
-        set({
-          user: {
-            id: uuidv4(),
-            name: "User",
-            email: _email,
-            onboardingComplete: false,
-          },
-          isAuthenticated: true,
-        });
+      authLoading: false,
+      login: async (email: string, password: string) => {
+        const { user } = await apiLogin(email, password);
+        set({ user: toUser(user), isAuthenticated: true });
       },
-      signup: (name: string, email: string, _password: string) => {
-        set({
-          user: {
-            id: uuidv4(),
-            name,
-            email,
-            onboardingComplete: false,
-          },
-          isAuthenticated: true,
-        });
+      signup: async (name: string, email: string, password: string) => {
+        const { user } = await apiSignup(name, email, password);
+        set({ user: toUser(user), isAuthenticated: true });
       },
-      logout: () => {
+      logout: async () => {
+        await apiLogout();
         set({
           user: null,
           isAuthenticated: false,
@@ -106,6 +117,26 @@ export const useAppStore = create<AppState>()(
           companyProfile: null,
           jobPostings: [],
         });
+      },
+      setUser: (user: User) => set({ user, isAuthenticated: true }),
+      rehydrateAuth: async () => {
+        const token = getToken();
+        if (!token) {
+          set({ user: null, isAuthenticated: false, authLoading: false });
+          return;
+        }
+        try {
+          set({ authLoading: true });
+          const authUser = await apiGetMe();
+          set({
+            user: toUser(authUser),
+            isAuthenticated: true,
+            authLoading: false,
+          });
+        } catch {
+          clearToken();
+          set({ user: null, isAuthenticated: false, authLoading: false });
+        }
       },
 
       // Onboarding

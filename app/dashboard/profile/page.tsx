@@ -1,7 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
+import {
+  apiGetProfile,
+  apiUpdateResume,
+  apiUpdateWorkStyle,
+  apiUpdatePortfolioLinks,
+} from "@/lib/api";
 import { PASSIONS, INDUSTRIES, COMPANY_SIZES } from "@/lib/types";
 import {
   UserCircleIcon,
@@ -32,6 +38,55 @@ export default function ProfilePage() {
   } = useAppStore();
 
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Load profile from API on mount
+  useEffect(() => {
+    apiGetProfile()
+      .then((profile) => {
+        if (profile.resumeData)
+          setResumeData({
+            skills: profile.resumeData.skills,
+            education: profile.resumeData.education,
+            experience: profile.resumeData.experience,
+          });
+        if (profile.holisticProfile)
+          setHolisticProfile(profile.holisticProfile);
+        if (profile.careerPreferences)
+          setCareerPreferences({
+            ...profile.careerPreferences,
+            workArrangement: profile.careerPreferences.workArrangement as (
+              | "remote"
+              | "hybrid"
+              | "onsite"
+            )[],
+            employmentType: profile.careerPreferences.employmentType as (
+              | "full-time"
+              | "contract"
+              | "internship"
+              | "part-time"
+            )[],
+            companySize: profile.careerPreferences.companySize as (
+              | "startup"
+              | "small"
+              | "medium"
+              | "large"
+              | "enterprise"
+            )[],
+            willingToRelocate: profile.careerPreferences.willingToRelocate,
+            availableToStart: profile.careerPreferences.availableToStart,
+          });
+        if (profile.portfolioLinks)
+          setPortfolioLinks({
+            linkedin: profile.portfolioLinks.linkedin ?? undefined,
+            github: profile.portfolioLinks.github ?? undefined,
+            portfolio: profile.portfolioLinks.portfolio ?? undefined,
+            design: profile.portfolioLinks.design ?? undefined,
+            blog: profile.portfolioLinks.blog ?? undefined,
+          });
+      })
+      .catch(() => {});
+  }, []);
 
   // Editable state
   const [editSkills, setEditSkills] = useState<string[]>(
@@ -64,35 +119,51 @@ export default function ProfilePage() {
     setActiveSection(activeSection === section ? null : section);
   };
 
-  const saveSkills = () => {
-    if (resumeData) {
-      setResumeData({ ...resumeData, skills: editSkills });
-    } else {
-      setResumeData({ skills: editSkills, education: [], experience: [] });
-    }
+  const saveSkills = async () => {
+    setSaving(true);
+    const data = resumeData
+      ? { ...resumeData, skills: editSkills }
+      : { skills: editSkills, education: [], experience: [] };
+    setResumeData(data);
+    try {
+      await apiUpdateResume(data);
+    } catch {}
+    setSaving(false);
     setActiveSection(null);
   };
 
-  const saveWorkStyle = () => {
-    setHolisticProfile({
+  const saveWorkStyle = async () => {
+    setSaving(true);
+    const data = {
       workStyle: {
         collaboration: editCollab,
         structure: editStructure,
         riskTolerance: editRisk,
       },
       passions: editPassions,
-    });
+    };
+    setHolisticProfile(data);
+    try {
+      await apiUpdateWorkStyle(data);
+    } catch {}
+    setSaving(false);
     setActiveSection(null);
   };
 
-  const saveLinks = () => {
-    setPortfolioLinks({
+  const saveLinks = async () => {
+    setSaving(true);
+    const data = {
       linkedin: editLinkedin,
       github: editGithub,
       portfolio: editPortfolio,
       design: editDesign,
       blog: editBlog,
-    });
+    };
+    setPortfolioLinks(data);
+    try {
+      await apiUpdatePortfolioLinks(data);
+    } catch {}
+    setSaving(false);
     setActiveSection(null);
   };
 
@@ -545,7 +616,9 @@ function MiniSlider({
             </button>
           ))}
         </div>
-        <span className="text-[10px] text-muted w-16 sm:w-20 shrink-0">{rightLabel}</span>
+        <span className="text-[10px] text-muted w-16 sm:w-20 shrink-0">
+          {rightLabel}
+        </span>
       </div>
     </div>
   );

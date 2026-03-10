@@ -98,12 +98,13 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, logout } = useAppStore();
+  const { user, isAuthenticated, logout, rehydrateAuth } = useAppStore();
   const [mounted, setMounted] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    rehydrateAuth();
   }, []);
 
   useEffect(() => {
@@ -125,7 +126,9 @@ export default function DashboardLayout({
       <div className="fixed top-0 left-0 right-0 h-14 bg-surface border-b border-border flex items-center justify-between px-4 z-40 md:hidden">
         <div className="flex items-center gap-2.5">
           <Image src="/logo.svg" alt="Vocation" width={22} height={22} />
-          <span className="font-bold tracking-tight text-sm text-lime">Vocation</span>
+          <span className="font-bold tracking-tight text-sm text-lime">
+            Vocation
+          </span>
         </div>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -228,8 +231,8 @@ export default function DashboardLayout({
             </div>
           </div>
           <button
-            onClick={() => {
-              logout();
+            onClick={async () => {
+              await logout();
               router.push("/");
             }}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] text-muted hover:text-foreground hover:bg-card transition-all cursor-pointer"
@@ -241,7 +244,9 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 md:ml-[240px] min-h-screen pt-14 md:pt-0">{children}</main>
+      <main className="flex-1 md:ml-[240px] min-h-screen pt-14 md:pt-0">
+        {children}
+      </main>
     </div>
   );
 }

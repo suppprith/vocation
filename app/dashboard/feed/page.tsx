@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useAppStore } from "@/lib/store";
-import { MOCK_JOBS } from "@/lib/mock-data";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { apiGetJobs, apiCreateApplication } from "@/lib/api";
+import type { ApiJob } from "@/lib/api";
 import { INDUSTRIES } from "@/lib/types";
 import {
   MagnifyingGlassIcon,
@@ -15,40 +15,45 @@ import type { Job } from "@/lib/types";
 import JobDetailModal from "@/components/job-detail-modal";
 
 export default function JobFeedPage() {
-  const { applications, addApplication } = useAppStore();
   const [search, setSearch] = useState("");
   const [filterIndustry, setFilterIndustry] = useState<string>("");
   const [filterArrangement, setFilterArrangement] = useState<string>("");
   const [filterSize, setFilterSize] = useState<string>("");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [filteredJobs, setFilteredJobs] = useState<ApiJob[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const filteredJobs = useMemo(() => {
-    return MOCK_JOBS.filter((job) => {
-      const matchesSearch =
-        !search ||
-        job.title.toLowerCase().includes(search.toLowerCase()) ||
-        job.company.toLowerCase().includes(search.toLowerCase()) ||
-        job.description.toLowerCase().includes(search.toLowerCase()) ||
-        job.skills.some((s) => s.toLowerCase().includes(search.toLowerCase()));
-
-      const matchesIndustry =
-        !filterIndustry || job.industry === filterIndustry;
-      const matchesArrangement =
-        !filterArrangement || job.workArrangement === filterArrangement;
-      const matchesSize = !filterSize || job.companySize === filterSize;
-
-      return (
-        matchesSearch && matchesIndustry && matchesArrangement && matchesSize
-      );
-    });
+  const fetchJobs = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params: Record<string, string> = {};
+      if (search) params.search = search;
+      if (filterIndustry) params.industry = filterIndustry;
+      if (filterArrangement) params.workArrangement = filterArrangement;
+      if (filterSize) params.companySize = filterSize;
+      const res = await apiGetJobs(params);
+      setFilteredJobs(res.jobs);
+    } catch {
+      setFilteredJobs([]);
+    }
+    setLoading(false);
   }, [search, filterIndustry, filterArrangement, filterSize]);
 
-  const handleSave = (job: Job) => {
-    const exists = applications.find((a) => a.job.id === job.id);
-    if (!exists) {
-      addApplication(job, "saved");
-    }
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(fetchJobs, 300);
+    return () => clearTimeout(debounceRef.current);
+  }, [fetchJobs]);
+
+  const handleSave = async (job: ApiJob) => {
+    if (savedIds.has(job.id)) return;
+    try {
+      await apiCreateApplication({ jobId: job.id, status: "saved" });
+      setSavedIds((prev) => new Set(prev).add(job.id));
+    } catch {}
   };
 
   const activeFilterCount = [
@@ -173,75 +178,11 @@ export default function JobFeedPage() {
       )}
 
       <div className="space-y-2.5">
-        {filteredJobs.map((job, i) => {
-          const isSaved = applications.some((a) => a.job.id === job.id);
-          return (
-            <div
-              key={job.id}
-              onClick={() => setSelectedJob(job)}
-              className={`p-4 rounded-2xl border border-border bg-card hover:bg-card-hover hover:border-border-light transition-all cursor-pointer animate-fadeIn stagger-${Math.min(i + 1, 5)}`}
-            >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-[13px] mb-0.5 truncate">
-                    {job.title}
-                  </h3>
-                  <p className="text-xs text-muted">
-                    {job.company} · {job.location} · {job.industry}
-                  </p>
-                </div>
-                <span className="ml-3 px-2 py-0.5 rounded-lg bg-accent-muted text-accent text-xs font-bold tabular-nums shrink-0">
-                  {job.matchScore}%
-                </span>
-              </div>
-              <p className="text-xs text-muted mb-3 line-clamp-2 leading-relaxed">
-                {job.description}
-              </p>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="px-2 py-0.5 rounded-lg bg-surface-raised border border-border text-[11px] text-muted capitalize">
-                    {job.workArrangement}
-                  </span>
-                  <span className="px-2 py-0.5 rounded-lg bg-surface-raised border border-border text-[11px] text-muted capitalize">
-                    {job.employmentType.replace("-", " ")}
-                  </span>
-                  {job.salaryRange && (
-                    <span className="px-2 py-0.5 rounded-lg bg-surface-raised border border-border text-[11px] text-muted">
-                      {job.salaryRange}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSave(job);
-                    }}
-                    disabled={isSaved}
-                    className={`p-1.5 rounded-lg transition-all cursor-pointer active:scale-[0.93] ${
-                      isSaved
-                        ? "text-accent bg-accent-muted"
-                        : "text-muted hover:text-accent hover:bg-accent-muted"
-                    }`}
-                    title={isSaved ? "Saved" : "Save job"}
-                  >
-                    <BookmarkIcon className="w-4 h-4" />
-                  </button>
-                  <a
-                    href={job.applyUrl}
-                    onClick={(e) => e.stopPropagation()}
-                    className="p-1.5 rounded-lg text-muted hover:text-accent hover:bg-accent-muted transition-all"
-                    title="Apply"
-                  >
-                    <ArrowTopRightOnSquareIcon className="w-4 h-4" />
-                  </a>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-
-        {filteredJobs.length === 0 && (
+        {loading && filteredJobs.length === 0 ? (
+          <div className="text-center py-16 text-muted">
+            <p className="text-xs">Loading jobs...</p>
+          </div>
+        ) : filteredJobs.length === 0 ? (
           <div className="text-center py-16 text-muted">
             <MagnifyingGlassIcon className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
             <p className="font-semibold text-[13px] mb-1">No jobs found</p>
@@ -249,6 +190,74 @@ export default function JobFeedPage() {
               Try adjusting your search or filters.
             </p>
           </div>
+        ) : (
+          filteredJobs.map((job, i) => {
+            const isSaved = savedIds.has(job.id);
+            return (
+              <div
+                key={job.id}
+                onClick={() => setSelectedJob(job as unknown as Job)}
+                className={`p-4 rounded-2xl border border-border bg-card hover:bg-card-hover hover:border-border-light transition-all cursor-pointer animate-fadeIn stagger-${Math.min(i + 1, 5)}`}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-[13px] mb-0.5 truncate">
+                      {job.title}
+                    </h3>
+                    <p className="text-xs text-muted">
+                      {job.company} · {job.location} · {job.industry}
+                    </p>
+                  </div>
+                  <span className="ml-3 px-2 py-0.5 rounded-lg bg-accent-muted text-accent text-xs font-bold tabular-nums shrink-0">
+                    {job.matchScore}%
+                  </span>
+                </div>
+                <p className="text-xs text-muted mb-3 line-clamp-2 leading-relaxed">
+                  {job.description}
+                </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="px-2 py-0.5 rounded-lg bg-surface-raised border border-border text-[11px] text-muted capitalize">
+                      {job.workArrangement}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-lg bg-surface-raised border border-border text-[11px] text-muted capitalize">
+                      {job.employmentType.replace("-", " ")}
+                    </span>
+                    {job.salaryRange && (
+                      <span className="px-2 py-0.5 rounded-lg bg-surface-raised border border-border text-[11px] text-muted">
+                        {job.salaryRange}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSave(job);
+                      }}
+                      disabled={isSaved}
+                      className={`p-1.5 rounded-lg transition-all cursor-pointer active:scale-[0.93] ${
+                        isSaved
+                          ? "text-accent bg-accent-muted"
+                          : "text-muted hover:text-accent hover:bg-accent-muted"
+                      }`}
+                      title={isSaved ? "Saved" : "Save job"}
+                    >
+                      <BookmarkIcon className="w-4 h-4" />
+                    </button>
+                    <a
+                      href={job.applyUrl}
+                      onClick={(e) => e.stopPropagation()}
+                      className="p-1.5 rounded-lg text-muted hover:text-accent hover:bg-accent-muted transition-all"
+                      title="Apply"
+                    >
+                      <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
 

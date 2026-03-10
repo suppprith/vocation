@@ -1,41 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
-import { MOCK_JOBS } from "@/lib/mock-data";
+import {
+  apiGetDashboard,
+  type DashboardData,
+  type DashboardRecommendedJob,
+} from "@/lib/api";
 import Link from "next/link";
 import {
-  BriefcaseIcon,
   SparklesIcon,
   RectangleStackIcon,
   DocumentTextIcon,
   ArrowRightIcon,
-  BookmarkIcon,
-  MapPinIcon,
 } from "@heroicons/react/24/outline";
-import type { Job } from "@/lib/types";
-import JobDetailModal from "@/components/job-detail-modal";
 
 export default function DashboardPage() {
-  const { user, applications, resumeData, addApplication } = useAppStore();
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const topMatches = MOCK_JOBS.slice(0, 4);
+  const { user, applications, resumeData } = useAppStore();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(true);
 
-  const appliedCount = applications.filter(
-    (a) => a.status === "applied",
-  ).length;
-  const interviewCount = applications.filter(
-    (a) => a.status === "interviewing",
-  ).length;
-  const savedCount = applications.filter((a) => a.status === "saved").length;
-  const skillCount = resumeData?.skills?.length || 0;
+  useEffect(() => {
+    apiGetDashboard()
+      .then(setDashboardData)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
-  const handleSave = (job: Job) => {
-    const exists = applications.find((a) => a.job.id === job.id);
-    if (!exists) {
-      addApplication(job, "saved");
-    }
-  };
+  const stats = dashboardData?.stats;
+  const recommendedJobs = dashboardData?.recommendedJobs ?? [];
+
+  const savedCount =
+    stats?.statusCounts?.saved ??
+    applications.filter((a) => a.status === "saved").length;
+  const appliedCount =
+    stats?.statusCounts?.applied ??
+    applications.filter((a) => a.status === "applied").length;
+  const interviewCount =
+    stats?.statusCounts?.interviewing ??
+    applications.filter((a) => a.status === "interviewing").length;
+  const totalActive = stats?.totalActiveJobs ?? resumeData?.skills?.length ?? 0;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl">
@@ -54,7 +60,7 @@ export default function DashboardPage() {
         <StatCard label="Saved" value={savedCount} />
         <StatCard label="Applied" value={appliedCount} />
         <StatCard label="Interviews" value={interviewCount} />
-        <StatCard label="Skills" value={skillCount} />
+        <StatCard label="Active Jobs" value={totalActive} />
       </div>
 
       {/* Top Matches */}
@@ -69,17 +75,21 @@ export default function DashboardPage() {
             <ArrowRightIcon className="w-3 h-3" />
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-          {topMatches.map((job) => (
-            <JobCard
-              key={job.id}
-              job={job}
-              onSave={handleSave}
-              onSelect={() => setSelectedJob(job)}
-              isSaved={applications.some((a) => a.job.id === job.id)}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-sm text-muted py-8 text-center">
+            Loading recommendations...
+          </div>
+        ) : recommendedJobs.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            {recommendedJobs.map((job) => (
+              <RecommendedJobCard key={job.id} job={job} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-sm text-muted py-8 text-center">
+            No recommendations yet.
+          </div>
+        )}
       </div>
 
       {/* Quick links */}
@@ -118,8 +128,6 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
-
-      <JobDetailModal job={selectedJob} onClose={() => setSelectedJob(null)} />
     </div>
   );
 }
@@ -135,22 +143,9 @@ function StatCard({ label, value }: { label: string; value: number }) {
   );
 }
 
-function JobCard({
-  job,
-  onSave,
-  onSelect,
-  isSaved,
-}: {
-  job: Job;
-  onSave: (job: Job) => void;
-  onSelect: () => void;
-  isSaved: boolean;
-}) {
+function RecommendedJobCard({ job }: { job: DashboardRecommendedJob }) {
   return (
-    <div
-      onClick={onSelect}
-      className="p-4 rounded-xl border border-border bg-card hover:bg-card-hover hover:border-border-light transition-all cursor-pointer"
-    >
+    <div className="p-4 rounded-xl border border-border bg-card hover:bg-card-hover hover:border-border-light transition-all">
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-[13px] truncate">{job.title}</h3>
@@ -158,23 +153,9 @@ function JobCard({
             {job.company} · {job.location}
           </p>
         </div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onSave(job);
-          }}
-          disabled={isSaved}
-          className={`p-1.5 rounded-lg transition-all cursor-pointer ml-2 ${
-            isSaved
-              ? "text-accent bg-accent-muted"
-              : "text-muted hover:text-accent hover:bg-accent-muted"
-          }`}
-        >
-          <BookmarkIcon className="w-4 h-4" />
-        </button>
       </div>
       <p className="text-xs text-muted mb-2.5 line-clamp-2 leading-relaxed">
-        {job.description}
+        {job.matchReason}
       </p>
       <div className="flex items-center gap-1.5 flex-wrap">
         <span className="px-2 py-0.5 rounded-md bg-surface-raised text-[11px] text-muted capitalize">

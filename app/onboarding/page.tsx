@@ -4,6 +4,14 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAppStore } from "@/lib/store";
+import {
+  apiUploadResume,
+  apiUpdateResume,
+  apiUpdateWorkStyle,
+  apiUpdateCareerPreferences,
+  apiUpdatePortfolioLinks,
+  apiCompleteOnboarding,
+} from "@/lib/api";
 import { PASSIONS, INDUSTRIES, COMPANY_SIZES } from "@/lib/types";
 import {
   DocumentArrowUpIcon,
@@ -42,6 +50,7 @@ export default function OnboardingPage() {
 
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState(0);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -132,72 +141,93 @@ export default function OnboardingPage() {
   };
 
   const handleFileUpload = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (file) {
+      if (!file) return;
+      setSaving(true);
+      try {
+        const parsed = await apiUploadResume(file);
         setResumeUploaded(true);
-        setSkills(["JavaScript", "TypeScript", "React", "Node.js", "Python"]);
-        setEducation([
-          {
-            institution: "University of Technology",
-            degree: "Bachelor of Science",
-            field: "Computer Science",
-            year: "2022",
-          },
-        ]);
-        setExperience([
-          {
-            company: "Tech Corp",
-            role: "Software Engineer",
-            duration: "2022 - Present",
-            description:
-              "Built and maintained web applications using React and Node.js.",
-          },
-        ]);
+        if (parsed.skills?.length) setSkills(parsed.skills);
+        if (parsed.education?.length) setEducation(parsed.education);
+        if (parsed.experience?.length) setExperience(parsed.experience);
+      } catch {
+        // File upload failed silently — user can still enter manually
+      } finally {
+        setSaving(false);
       }
     },
     [],
   );
 
-  const handleNext = () => {
-    if (step === 0) {
-      setResumeData({ skills, education, experience });
-    } else if (step === 2) {
-      setHolisticProfile({
-        workStyle: { collaboration, structure, riskTolerance },
-        passions: selectedPassions,
-      });
-    } else if (step === 3) {
-      setCareerPreferences({
-        targetRoles,
-        preferredIndustries,
-        workArrangement: workArrangement as ("remote" | "hybrid" | "onsite")[],
-        employmentType: employmentType as (
-          | "full-time"
-          | "contract"
-          | "internship"
-          | "part-time"
-        )[],
-        companySize: companySize as (
-          | "startup"
-          | "small"
-          | "medium"
-          | "large"
-          | "enterprise"
-        )[],
-        salaryMin: salaryMin ? parseInt(salaryMin) : undefined,
-        salaryMax: salaryMax ? parseInt(salaryMax) : undefined,
-        willingToRelocate,
-        availableToStart,
-      });
+  const handleNext = async () => {
+    setSaving(true);
+    try {
+      if (step === 0) {
+        setResumeData({ skills, education, experience });
+        await apiUpdateResume({ skills, education, experience });
+      } else if (step === 2) {
+        const data = {
+          workStyle: { collaboration, structure, riskTolerance },
+          passions: selectedPassions,
+        };
+        setHolisticProfile(data);
+        await apiUpdateWorkStyle(data);
+      } else if (step === 3) {
+        const data = {
+          targetRoles,
+          preferredIndustries,
+          workArrangement: workArrangement as (
+            | "remote"
+            | "hybrid"
+            | "onsite"
+          )[],
+          employmentType: employmentType as (
+            | "full-time"
+            | "contract"
+            | "internship"
+            | "part-time"
+          )[],
+          companySize: companySize as (
+            | "startup"
+            | "small"
+            | "medium"
+            | "large"
+            | "enterprise"
+          )[],
+          salaryMin: salaryMin ? parseInt(salaryMin) : undefined,
+          salaryMax: salaryMax ? parseInt(salaryMax) : undefined,
+          willingToRelocate,
+          availableToStart,
+        };
+        setCareerPreferences(data);
+        await apiUpdateCareerPreferences(data);
+      }
+      if (step < 4) setStep(step + 1);
+    } catch {
+      // Continue locally even if API save fails
+      if (step < 4) setStep(step + 1);
+    } finally {
+      setSaving(false);
     }
-    if (step < 4) setStep(step + 1);
   };
 
-  const handleComplete = () => {
-    setPortfolioLinks({ linkedin, github, portfolio, design, blog });
-    completeOnboarding();
-    router.push("/dashboard");
+  const handleComplete = async () => {
+    setSaving(true);
+    try {
+      const links = { linkedin, github, portfolio, design, blog };
+      setPortfolioLinks(links);
+      await apiUpdatePortfolioLinks(links);
+      await apiCompleteOnboarding();
+      completeOnboarding();
+      router.push("/dashboard");
+    } catch {
+      // Complete locally even if API fails
+      completeOnboarding();
+      router.push("/dashboard");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!mounted) return null;
@@ -211,7 +241,9 @@ export default function OnboardingPage() {
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image src="/logo.svg" alt="Vocation" width={26} height={26} />
-            <span className="font-bold tracking-tight text-sm hidden sm:inline">Vocation</span>
+            <span className="font-bold tracking-tight text-sm hidden sm:inline">
+              Vocation
+            </span>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted font-medium">
@@ -866,18 +898,20 @@ export default function OnboardingPage() {
           {step < 4 ? (
             <button
               onClick={handleNext}
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-accent hover:bg-accent-hover active:scale-[0.98] text-white rounded-xl text-sm font-semibold transition-all cursor-pointer"
+              disabled={saving}
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-accent hover:bg-accent-hover active:scale-[0.98] text-white rounded-xl text-sm font-semibold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Continue
-              <ArrowRightIcon className="w-4 h-4" />
+              {saving ? "Saving..." : "Continue"}
+              {!saving && <ArrowRightIcon className="w-4 h-4" />}
             </button>
           ) : (
             <button
               onClick={handleComplete}
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-accent hover:bg-accent-hover active:scale-[0.98] text-white rounded-xl text-sm font-semibold transition-all cursor-pointer"
+              disabled={saving}
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-accent hover:bg-accent-hover active:scale-[0.98] text-white rounded-xl text-sm font-semibold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Complete Setup
-              <CheckIcon className="w-4 h-4" />
+              {saving ? "Completing..." : "Complete Setup"}
+              {!saving && <CheckIcon className="w-4 h-4" />}
             </button>
           )}
         </div>

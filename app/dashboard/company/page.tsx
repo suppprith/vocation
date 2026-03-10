@@ -1,7 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
+import {
+  apiGetCompany,
+  apiCreateCompany,
+  apiUpdateCompany,
+  type ApiCompanyProfile,
+} from "@/lib/api";
 import { INDUSTRIES, COMPANY_SIZES } from "@/lib/types";
 import {
   BuildingOffice2Icon,
@@ -12,6 +18,7 @@ import {
 
 export default function CompanyPage() {
   const { companyProfile, setCompanyProfile } = useAppStore();
+  const [existsOnServer, setExistsOnServer] = useState(false);
 
   const [name, setName] = useState(companyProfile?.name || "");
   const [website, setWebsite] = useState(companyProfile?.website || "");
@@ -38,6 +45,26 @@ export default function CompanyPage() {
   );
 
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Load from API on mount
+  useEffect(() => {
+    apiGetCompany()
+      .then(({ companyProfile: p }) => {
+        setExistsOnServer(true);
+        setName(p.companyName);
+        setWebsite(p.websiteUrl || "");
+        setIndustry(p.industry);
+        setSize(p.companySize);
+        setLocation(p.location);
+        setDescription(p.description);
+        setBenefits(p.benefits || []);
+        setTechStack(p.techStack || []);
+        setFoundedYear(p.foundedYear ? String(p.foundedYear) : "");
+        setLinkedinUrl(p.socialLinks?.linkedin || "");
+      })
+      .catch(() => {});
+  }, []);
 
   const addBenefit = () => {
     if (newBenefit.trim() && !benefits.includes(newBenefit.trim())) {
@@ -53,10 +80,11 @@ export default function CompanyPage() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) return;
+    setSaving(true);
 
-    setCompanyProfile({
+    const localData = {
       name: name.trim(),
       website: website.trim() || undefined,
       industry,
@@ -68,8 +96,34 @@ export default function CompanyPage() {
       techStack: techStack.length > 0 ? techStack : undefined,
       foundedYear: foundedYear.trim() || undefined,
       linkedinUrl: linkedinUrl.trim() || undefined,
-    });
+    };
+    setCompanyProfile(localData);
 
+    const apiData: ApiCompanyProfile = {
+      companyName: name.trim(),
+      industry,
+      companySize: size,
+      description: description.trim(),
+      websiteUrl: website.trim() || null,
+      location: location.trim(),
+      foundedYear: foundedYear.trim() ? Number(foundedYear.trim()) : null,
+      benefits: benefits.length > 0 ? benefits : [],
+      techStack: techStack.length > 0 ? techStack : [],
+      socialLinks: {
+        linkedin: linkedinUrl.trim() || null,
+      },
+    };
+
+    try {
+      if (existsOnServer) {
+        await apiUpdateCompany(apiData);
+      } else {
+        await apiCreateCompany(apiData);
+        setExistsOnServer(true);
+      }
+    } catch {}
+
+    setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -302,11 +356,11 @@ export default function CompanyPage() {
         <div className="pt-2">
           <button
             onClick={handleSave}
-            disabled={!name.trim()}
+            disabled={!name.trim() || saving}
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-all cursor-pointer active:scale-[0.97]"
           >
             <CheckIcon className="w-4 h-4" />
-            {saved ? "Saved!" : "Save Profile"}
+            {saving ? "Saving..." : saved ? "Saved!" : "Save Profile"}
           </button>
         </div>
       </div>
